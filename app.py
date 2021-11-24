@@ -10,17 +10,44 @@ qs.extend_pandas()
 
 st.set_page_config(layout = "wide")
 
+
+
+
+
+
+cryptos = ["BTC-USD", "ETH-USD", "BNB-USD", "XRP-USD", "ADA-USD"]
+indexes = ["SPY", "QQQ"]
+strategies = ["Stacked BTC", "Stacked BTC Fast", "Stacked ETH Hyper"]
+
+options = strategies + cryptos + indexes
 col1, col2, col3 = st.columns((1, 2, 1))
 col2.title("Technical Analysis Dashboard")
-options = ["BTC-USD", "ETH-USD", "BNB-USD", "XRP-USD", "ADA-USD"]
+
 ticker = col2.selectbox("Choose Ticker", options)
+def get_data(ticker):
+    
+    if ticker[0:7] != "Stacked":
+        print(ticker)
+        ticker_data = yf.download(ticker, start="2016-01-01", end="2021-11-17")
+        ticker_data = pd.DataFrame(ticker_data["Close"])
+        ticker_data = ticker_data.rename(columns={"Close": ticker})
+    else:
+        strat = ticker
+        strat = strat.replace(" ", "_")
+        ticker_data = pd.read_csv(strat+".csv")
+        ticker_data = ticker_data.set_index("datetime")
+        ticker_data.index = [x[:10] for x in ticker_data.index]
+        ticker_data.index = pd.to_datetime(ticker_data.index)
+        ticker_data = pd.DataFrame(ticker_data["Strategy"])
+        ticker_data = ticker_data.rename(columns={"Strategy": ticker})
+        
+    return ticker_data
 
 
 
 ######################## Format Ticker Data ##########################
-ticker_data = yf.download(ticker, start="2016-01-01", end="2021-11-17")
-ticker_data = pd.DataFrame(ticker_data["Close"])
-ticker_data = ticker_data.rename(columns={"Close": ticker})
+ticker_data = get_data(ticker)
+print(ticker_data)
 ticker_qs = ticker_data.pct_change()
 
 
@@ -32,10 +59,17 @@ col2.line_chart(ticker_data, height = 500)
 
 
 ########################## Format Index Data ########################
-indexes = ["SPY", "QQQ"]
-index_data = yf.download(indexes, start="2016-01-01", end="2021-11-17")
-index_choice = col2.selectbox("Choose Index", indexes)
-index_choice_data = pd.DataFrame(index_data["Close"][index_choice])
+# index_data = yf.download(indexes, start="2016-01-01", end="2021-11-17")
+# index_options = options.copy()
+# index_options.remove(ticker)
+index_choice = col2.selectbox("Choose Benchmark", options, index = 3)
+
+if index_choice == ticker:
+    index_choice = "SPY"
+
+index_choice_data = get_data(index_choice)
+print(index_choice_data)
+# index_choice_data = pd.DataFrame(index_data["Close"][index_choice])
 index_qs = index_choice_data.pct_change()
 
 
@@ -54,7 +88,13 @@ index_qs = index_qs.squeeze()
 
 
 ######################## Graph Combined Data #########################
-combined_data = ticker_data.join(index_choice_data, how = "outer")
+
+ticker_port = pd.DataFrame(qs.utils.make_portfolio(ticker_qs, start_balance = 100))
+ticker_port.columns = [ticker]
+index_port = pd.DataFrame(qs.utils.make_portfolio(index_qs, start_balance = 100))
+index_port.columns = [index_choice]
+
+combined_data = ticker_port.join(index_port, how = "outer")
 combined_data = combined_data.dropna()
 
 col2.subheader("Compare " + ticker + " to an benchmark")
@@ -107,7 +147,7 @@ bad_formatted = ["Risk-Free Rate ", "Time in Market ", "Cumulative Return ", "CA
 for stat in bad_formatted:
     
     metrics.loc[stat]["Strategy"] = str(round(float(str(metrics.loc[stat]["Strategy"]).replace(",", ""))  * 100, 1)) + "%"
-    metrics.loc[stat]["Benchmark"] = str(round(float(metrics.loc[stat]["Benchmark"]) * 100, 1)) + "%"
+    metrics.loc[stat]["Benchmark"] = str(round(float(str(metrics.loc[stat]["Benchmark"]).replace(",", "")) * 100, 1)) + "%"
 
 metrics.columns = [ticker, index_choice]
 
