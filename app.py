@@ -20,7 +20,7 @@ indexes = ["SPY", "QQQ"]
 strategies = ["Stacked BTC", "Stacked BTC Fast", "Stacked ETH Hyper"]
 
 options = strategies + cryptos + indexes
-col1, col2, col3 = st.columns((1, 2, 1))
+col1, col2, col3 = st.columns((1, 3, 1))
 col2.title("Technical Analysis Dashboard")
 
 ticker = col2.selectbox("Choose Ticker", options)
