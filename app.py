@@ -106,7 +106,7 @@ bad_formatted = ["Risk-Free Rate ", "Time in Market ", "Cumulative Return ", "CA
 
 for stat in bad_formatted:
     
-    metrics.loc[stat]["Strategy"] = str(round(float(metrics.loc[stat]["Strategy"])  * 100, 1)) + "%"
+    metrics.loc[stat]["Strategy"] = str(round(float(str(metrics.loc[stat]["Strategy"]).replace(",", ""))  * 100, 1)) + "%"
     metrics.loc[stat]["Benchmark"] = str(round(float(metrics.loc[stat]["Benchmark"]) * 100, 1)) + "%"
 
 metrics.columns = [ticker, index_choice]
