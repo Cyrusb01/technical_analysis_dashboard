@@ -137,10 +137,6 @@ fig3.line_chart(rolling_volatility, width = 600, height = 300, use_container_wid
 
 
 
-##################### Heatmap ##############################
-fig = ticker_qs.plot_monthly_heatmap(show= False)
-fig4.subheader("Monthly Returns Heatmap")
-fig4.pyplot(fig, width = 600, height = 300, use_container_width = False)
 
 
 
@@ -154,6 +150,39 @@ for stat in bad_formatted:
     metrics.loc[stat]["Benchmark"] = str(round(float(str(metrics.loc[stat]["Benchmark"]).replace(",", "")) * 100, 1)) + "%"
 
 metrics.columns = [ticker, index_choice]
+
+
+
+###################### Bar Chart ###################################
+ticker_sortino = metrics.loc["Sortino"][ticker]
+index_sortino = metrics.loc["Sortino"][index_choice]
+
+df = pd.DataFrame(list(zip([ticker_sortino, 0], [0, index_sortino])),
+               columns =[ticker, index_choice])
+
+
+s = pd.Series([ticker, index_choice])
+df = df.set_index(s)
+fig4.subheader("Sortino Ratios")
+fig4.bar_chart(df, width = 600, height = 410, use_container_width = False)
+
+# df = pd.read_csv("https://github.com/eervin123/ember_strategy_upgrade/blob/42a473cde02b5499cbef708529d09100d66e3f3f/output/stacked/eth_hyper/stacked_eth_hyper_stats.csv#L1")
+
+print(df)
+
+# url="https://raw.githubusercontent.com/eervin123/backtesting-crypto/42a473cde02b5499cbef708529d09100d66e3f3f/output/stacked/eth_hyper/stacked_eth_hyper_stats.csv?token=ASTDTEMD26ICBKFVZV4EHCDBU2CGY"
+# c=pd.read_csv(url)
+# print(c)
+# st.bar_chart(df)
+
+
+##################### Heatmap ##############################
+fig = ticker_qs.plot_monthly_heatmap(show= False)
+stats.subheader("Monthly Returns Heatmap")
+stats.pyplot(fig, width = 600, height = 300, use_container_width = False)
+
+
+
 
 metrics_str = metrics.astype(str)
 stats.dataframe(metrics_str, width = 700, height = 1200)
